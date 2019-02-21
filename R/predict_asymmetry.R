@@ -83,5 +83,5 @@ predict_asymmetry <- function(data, theta = 0.05,
   posterior <- do.call(rbind, posterior)
   colnames(posterior) <- c("LeftDominance", "RightDominance")
 
-  return(cbind(ID = unique(data$ID), posterior))
+  return(as.data.frame(cbind(ID = unique(data$ID), posterior), stringsAsFactors = FALSE))
 }
