@@ -4,8 +4,8 @@
 \alias{predict_asymmetry}
 \title{Predict brain asymmetry}
 \usage{
-predict_asymmetry(data, theta = 0.05, mu = c(10.43, -24.41, 11.52,
-  -24.41), sigma = c(22.8, 28, 17, 28), rho = c(0.56, 0.27))
+predict_asymmetry(data, mu = c(10.43, -24.41, 11.52, -24.41),
+  sigma = c(22.8, 28, 17, 28), rho = c(0.31, 0.115))
 }
 \arguments{
 \item{data}{Data frame with the following columns:
@@ -16,8 +16,6 @@ predict_asymmetry(data, theta = 0.05, mu = c(10.43, -24.41, 11.52,
 }
 In additional, an optional column name \code{ID} can be provided, giving the subject ID. If a
 subject has multiple measurements, the posterior based on all measurements is provided.}
-
-\item{theta}{Probability of right hemispheric dominance.}
 
 \item{mu}{Vector of mean dichotic listening scores.}
 
@@ -39,11 +37,10 @@ data <- data.frame(handedness = c("A", "D", "D"),
 
 predict_asymmetry(data)
 
-data <- data.frame(ID = c(1, 2, 2),
+
+data <- data.frame(ID = c(1, 1, 2),
                    handedness = c("A", "D", "D"),
                    listening = c(-10, 20, 10),
                    stringsAsFactors = FALSE)
-
-predict_asymmetry(data)
 
 }
