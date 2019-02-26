@@ -39,7 +39,7 @@ predict_asymmetry(data)
 
 
 data <- data.frame(ID = c(1, 1, 2),
-                   handedness = c("A", "D", "D"),
+                   handedness = c("A", "A", "D"),
                    listening = c(-10, 20, 10),
                    stringsAsFactors = FALSE)
 

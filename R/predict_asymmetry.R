@@ -41,6 +41,8 @@ predict_asymmetry <- function(data,
   # Check if data contains an ID column
   if(!"ID" %in% colnames(data)) data$ID = seq(1, nrow(data), by = 1)
 
+  if(is.factor(data$handedness)) data$handedness <- as.character(data$handedness)
+
   # Sort according to ID
   data <- data[order(data$ID), , drop = FALSE]
 
@@ -55,15 +57,15 @@ predict_asymmetry <- function(data,
     stopifnot(length(unique(subdata$handedness)) == 1)
     # p(lambda | x1)
     ind <- ifelse(subdata$handedness[[1]] == 0, 1, 2)
-    p_lambda_x1 <- c(1 - rho[[ind]], rho[[ind]])
+    p_lambda_x2 <- c(1 - rho[[ind]], rho[[ind]])
 
     # p(x1 | x2, lambda)
     ind <- if(subdata$handedness[[1]] == 0) c(1, 2) else c(3, 4)
     p_x1_cond <- c(
-      do.call(prod, list(truncnorm::ptruncnorm(subdata$listening, a = -100.01, b = 100.01, mean = mu[ind[[1]]], sd = sigma[ind[[1]]]))),
-      do.call(prod, list(truncnorm::ptruncnorm(subdata$listening, a = -100.01, b = 100.01, mean = mu[ind[[2]]], sd = sigma[ind[[2]]]))))
+      do.call(prod, list(truncnorm::dtruncnorm(subdata$listening, a = -100.01, b = 100.01, mean = mu[ind[[1]]], sd = sigma[ind[[1]]]))),
+      do.call(prod, list(truncnorm::dtruncnorm(subdata$listening, a = -100.01, b = 100.01, mean = mu[ind[[2]]], sd = sigma[ind[[2]]]))))
 
-    posterior <- p_lambda_x1 * p_x1_cond
+    posterior <- p_lambda_x2 * p_x1_cond
     posterior / sum(posterior)
   })
 
