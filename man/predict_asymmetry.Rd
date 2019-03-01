@@ -5,7 +5,7 @@
 \title{Predict brain asymmetry}
 \usage{
 predict_asymmetry(data, mu = c(10, -24, 12, -24), sigma = rep(22, 4),
-  rho = c(0.31, 0.12))
+  rho = c(0.31, 0.12), mu_sem = NULL)
 }
 \arguments{
 \item{data}{Data frame with the following columns:
@@ -22,6 +22,9 @@ subject has multiple measurements, the posterior based on all measurements is pr
 \item{sigma}{Vector of standard deviation of dichotic listening scores.}
 
 \item{rho}{Probability of dextrality given left or right hemispheric dominance.}
+
+\item{mu_sem}{Vector representing the standard error of the mean of \code{mu}. If provided, a hierarchical model
+is computed.}
 }
 \value{
 The probability of left or right hemispheric dominance in additional columns of \code{data}.
@@ -31,16 +34,35 @@ Predict brain asymmetry
 }
 \examples{
 library(asymm)
+
+# Three observations of three individuals
 data <- data.frame(handedness = c("A", "D", "D"),
                    listening = c(-10, 20, 10),
                    stringsAsFactors = FALSE)
 
 predict_asymmetry(data)
 
+# Take into account uncertainty in the parameters for mean speech laterlization scores.
+predict_asymmetry(data, mu_sem = c(4.6, 7.0, 4.3, 7.0))
 
+# Multiple observations
 data <- data.frame(ID = c(1, 1, 2),
                    handedness = c("A", "A", "D"),
                    listening = c(-10, 20, 10),
                    stringsAsFactors = FALSE)
+
+# Plot over a grid
+grid <- expand.grid(listening = seq(from = -100, to = 100, by = 1), handedness = c("A", "D"))
+predictions <- cbind(grid, predict_asymmetry(grid))
+
+library(ggplot2)
+ggplot(predictions, aes(x = listening, y = LeftDominance, group = handedness, color = handedness)) +
+  geom_line() +
+  geom_hline(yintercept = 0.05, color = "gray", lwd = 1) +
+  geom_hline(yintercept = 0.95, color = "gray", lwd = 1) +
+  xlab("Speech lateralization score") +
+  ylab("Probability of left brain asymmetry") +
+  theme(text = element_text(size = 16),
+        legend.title = element_blank())
 
 }
