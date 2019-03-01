@@ -34,9 +34,9 @@
 #'                    stringsAsFactors = FALSE)
 #'
 predict_asymmetry <- function(data,
-                              mu = c(10.43, -24.41, 11.52, -24.41),
-                              sigma = c(22.8, 28.0, 17.0, 28.0),
-                              rho = c(0.31, 0.115)){
+                              mu = c(10, -24, 12, -24),
+                              sigma = rep(22, 4),
+                              rho = c(0.31, 0.12)){
 
   # Check if data contains an ID column
   if(!"ID" %in% colnames(data)) data$ID = seq(1, nrow(data), by = 1)
