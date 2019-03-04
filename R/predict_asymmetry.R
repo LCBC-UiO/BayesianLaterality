@@ -66,6 +66,8 @@ predict_asymmetry <- function(data,
 
   # Check if data contains an ID column
   if(!"ID" %in% colnames(data)) data$ID = seq(1, nrow(data), by = 1)
+  stopifnot("listening" %in% colnames(data) && is.numeric(data$listening))
+  stopifnot("handedness" %in% colnames(data))
 
   if(is.factor(data$handedness)) data$handedness <- as.character(data$handedness)
 
