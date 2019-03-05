@@ -65,7 +65,7 @@ predict_asymmetry <- function(data,
   maxval <- 100.01
 
   # Check if data contains an ID column
-  if(!"ID" %in% colnames(data)) data$ID = seq(1, nrow(data), by = 1)
+  if(!"ID" %in% colnames(data)) data$ID = as.character(seq(1, nrow(data), by = 1))
   stopifnot("listening" %in% colnames(data) && is.numeric(data$listening))
   stopifnot("handedness" %in% colnames(data))
 
@@ -104,7 +104,7 @@ predict_asymmetry <- function(data,
   posterior <- do.call(rbind, posterior)
   colnames(posterior) <- c("LeftDominance", "RightDominance")
 
-  return(as.data.frame(cbind(ID = unique(data$ID), posterior), stringsAsFactors = FALSE))
+  return(cbind(ID = unique(data$ID), as.data.frame(posterior), stringsAsFactors = FALSE))
 }
 
 laterality_dist <- function(x1, m, s, a, b, sem){
