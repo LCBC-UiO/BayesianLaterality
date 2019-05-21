@@ -15,7 +15,8 @@ predict_asymmetry(data, mu = c(10, -24, 12, -24), sigma = rep(22, 4),
 \code{"R"} or \code{"D"} for dextrals (right-handed)
 }
 In additional, an optional column name \code{ID} can be provided, giving the subject ID. If a
-subject has multiple measurements, the posterior based on all measurements is provided.}
+subject has multiple measurements, the posterior based on all measurements is provided. If the
+\code{ID} column is missing, each row is assumed to be measured on a separate subject.}
 
 \item{mu}{Vector of mean dichotic listening scores.}
 

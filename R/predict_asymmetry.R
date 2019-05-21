@@ -7,7 +7,8 @@
 #' \code{"R"} or \code{"D"} for dextrals (right-handed)
 #' }
 #' In additional, an optional column name \code{ID} can be provided, giving the subject ID. If a
-#' subject has multiple measurements, the posterior based on all measurements is provided.
+#' subject has multiple measurements, the posterior based on all measurements is provided. If the
+#' \code{ID} column is missing, each row is assumed to be measured on a separate subject.
 #'
 #'
 #' @param mu Vector of mean dichotic listening scores.
@@ -65,7 +66,10 @@ predict_asymmetry <- function(data,
   maxval <- 100.01
 
   # Check if data contains an ID column
-  if(!"ID" %in% colnames(data)) data$ID = as.character(seq(1, nrow(data), by = 1))
+  if(!"ID" %in% colnames(data)) {
+    message("No ID column in data, assuming one subject per row.")
+    data$ID = as.character(seq(1, nrow(data), by = 1))
+  }
   stopifnot("listening" %in% colnames(data) && is.numeric(data$listening))
   stopifnot("handedness" %in% colnames(data))
 
@@ -85,19 +89,20 @@ predict_asymmetry <- function(data,
     stopifnot(length(unique(subdata$handedness)) == 1)
     # p(lambda | x1)
     ind <- ifelse(subdata$handedness[[1]] == 0, 1, 2)
-    p_lambda_x2 <- c(1 - rho[[ind]], rho[[ind]])
+    p_lambda_x2 <- log(c(1 - rho[[ind]], rho[[ind]]))
 
 
     # p(x1 | x2, lambda)
     ind <- if(subdata$handedness[[1]] == 0) c(1, 2) else c(3, 4)
     p_x1_cond <- c(
-      do.call(prod, list(laterality_dist(subdata$listening, mu[ind[[1]]], sigma[ind[[1]]],
-                                         minval, maxval, mu_sem[ind[[1]]]))),
-      do.call(prod, list(laterality_dist(subdata$listening, mu[ind[[2]]], sigma[ind[[2]]],
-                                         minval, maxval, mu_sem[ind[[2]]])))
+      do.call(sum, list(log(laterality_dist(subdata$listening, mu[ind[[1]]], sigma[ind[[1]]],
+                                         minval, maxval, mu_sem[ind[[1]]])))),
+      do.call(sum, list(log(laterality_dist(subdata$listening, mu[ind[[2]]], sigma[ind[[2]]],
+                                         minval, maxval, mu_sem[ind[[2]]]))))
       )
 
-    posterior <- p_lambda_x2 * p_x1_cond
+    log_posterior <- p_lambda_x2 + p_x1_cond
+    posterior <- exp(log_posterior - max(log_posterior))
     posterior / sum(posterior)
   })
 
