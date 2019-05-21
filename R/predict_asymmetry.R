@@ -42,6 +42,8 @@
 #'                    listening = c(-10, 20, 10),
 #'                    stringsAsFactors = FALSE)
 #'
+#' predict_asymmetry(data)
+#'
 #' # Plot over a grid
 #' grid <- expand.grid(listening = seq(from = -100, to = 100, by = 1), handedness = c("A", "D"))
 #' predictions <- cbind(grid, predict_asymmetry(grid))
@@ -55,6 +57,9 @@
 #'   ylab("Probability of left brain asymmetry") +
 #'   theme(text = element_text(size = 16),
 #'         legend.title = element_blank())
+#'
+#' @importFrom magrittr "%>%"
+#' @importFrom rlang .data
 #'
 predict_asymmetry <- function(data,
                               mu = c(10, -24, 12, -24),
@@ -70,54 +75,41 @@ predict_asymmetry <- function(data,
     message("No ID column in data, assuming one subject per row.")
     data$ID = as.character(seq(1, nrow(data), by = 1))
   }
-  stopifnot("listening" %in% colnames(data) && is.numeric(data$listening))
-  stopifnot("handedness" %in% colnames(data))
-
-  if(is.factor(data$handedness)) data$handedness <- as.character(data$handedness)
-
-  # Sort according to ID
-  data <- data[order(data$ID), , drop = FALSE]
-
-  # Translate L or A to 0 and R or D to 1
-  data$handedness[data$handedness == "L"] <- "A"
-  data$handedness[data$handedness == "R"] <- "D"
-  data$handedness <- as.integer(factor(data$handedness, levels = c("A", "D"))) - 1L
-
 
   # Split data according to ID
-  posterior <- lapply(split(data, data$ID), function(subdata){
-    stopifnot(length(unique(subdata$handedness)) == 1)
-    # p(lambda | x1)
-    ind <- ifelse(subdata$handedness[[1]] == 0, 1, 2)
-    p_lambda_x2 <- log(c(1 - rho[[ind]], rho[[ind]]))
+  data %>%
+    dplyr::arrange(.data$ID) %>%
+    dplyr::mutate(
+      handedness = dplyr::recode(.data$handedness, L = 0L, A = 0L, D = 1L, R = 1L)
+    ) %>%
+    tidyr::nest(.data$listening, .key = "listening_measures") %>%
+    purrr::pmap_dfr(function(...) {
+      args <- list(...)
+      # p(alpha | x2)
+      p_alpha_x2 <- log(c(1 - rho[[args$handedness + 1]], rho[[args$handedness + 1]]))
+      # p(x1 | x2, alpha)
+      p_x1_cond <- purrr::map_dbl(if(args$handedness == 0) c(1, 2) else c(3, 4), function(x) {
+        if(is.null(mu_sem)){
+          sum(log(truncnorm::dtruncnorm(dplyr::pull(args$listening),
+                                     a = minval, b = maxval, mean = mu[x], sigma[x])))
+        } else {
+          mu_vec <- seq(from = minval, to = maxval, length.out = 1000)
+          sum(log(
+            matrix(
+              truncnorm::dtruncnorm(dplyr::pull(args$listening), a = minval, b = maxval, mean = mu[x], sd = sigma[x]),
+              ncol = 1) %*%
+                truncnorm::dtruncnorm(mu_vec, a = minval, b = maxval, mean = mu[x], sd = sigma[x])))
+        }
+      })
+      log_posterior <- p_alpha_x2 + p_x1_cond
+      posterior <- exp(log_posterior - max(log_posterior))
+      posterior <- posterior / sum(posterior)
 
-
-    # p(x1 | x2, lambda)
-    ind <- if(subdata$handedness[[1]] == 0) c(1, 2) else c(3, 4)
-    p_x1_cond <- c(
-      do.call(sum, list(log(laterality_dist(subdata$listening, mu[ind[[1]]], sigma[ind[[1]]],
-                                         minval, maxval, mu_sem[ind[[1]]])))),
-      do.call(sum, list(log(laterality_dist(subdata$listening, mu[ind[[2]]], sigma[ind[[2]]],
-                                         minval, maxval, mu_sem[ind[[2]]]))))
+      dplyr::tibble(
+        ID = args$ID,
+        LeftDominance = posterior[[1]],
+        RightDominance = posterior[[2]]
       )
-
-    log_posterior <- p_lambda_x2 + p_x1_cond
-    posterior <- exp(log_posterior - max(log_posterior))
-    posterior / sum(posterior)
-  })
-
-  posterior <- do.call(rbind, posterior)
-  colnames(posterior) <- c("LeftDominance", "RightDominance")
-
-  return(cbind(ID = unique(data$ID), as.data.frame(posterior), stringsAsFactors = FALSE))
+    })
 }
 
-laterality_dist <- function(x1, m, s, a, b, sem){
-  if(is.null(sem)){
-    truncnorm::dtruncnorm(x1, a = a, b = b, mean = m, sd = s)
-  } else {
-    mu_vec <- seq(from = a, to = b, length.out = 1000)
-    sum(truncnorm::dtruncnorm(x1, a = a, b = b, mean = mu_vec, sd = s) *
-      truncnorm::dtruncnorm(mu_vec, a = a, b = b, mean = m, sd = sem))
-  }
-}

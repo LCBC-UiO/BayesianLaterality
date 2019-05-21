@@ -52,6 +52,8 @@ data <- data.frame(ID = c(1, 1, 2),
                    listening = c(-10, 20, 10),
                    stringsAsFactors = FALSE)
 
+predict_asymmetry(data)
+
 # Plot over a grid
 grid <- expand.grid(listening = seq(from = -100, to = 100, by = 1), handedness = c("A", "D"))
 predictions <- cbind(grid, predict_asymmetry(grid))
