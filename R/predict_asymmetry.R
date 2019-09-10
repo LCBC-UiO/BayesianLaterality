@@ -78,6 +78,7 @@ predict_asymmetry <- function(data,
 
   # Split data according to ID
   data %>%
+    dplyr::select(.data$ID, .data$listening, .data$handedness) %>%
     dplyr::arrange(.data$ID) %>%
     dplyr::mutate(
       handedness = dplyr::recode(.data$handedness, L = 0L, A = 0L, D = 1L, R = 1L)
