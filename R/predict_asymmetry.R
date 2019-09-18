@@ -46,7 +46,8 @@
 #'
 #' # Plot over a grid
 #' grid <- expand.grid(listening = seq(from = -100, to = 100, by = 1), handedness = c("A", "D"))
-#' predictions <- cbind(grid, predict_asymmetry(grid))
+#' grid$ID <- seq(1, nrow(grid), by = 1)
+#' predictions <- merge(grid, predict_asymmetry(grid), by = "ID")
 #'
 #' library(ggplot2)
 #' ggplot(predictions, aes(x = listening, y = LeftDominance, group = handedness, color = handedness)) +
@@ -75,42 +76,30 @@ predict_asymmetry <- function(data,
     message("No ID column in data, assuming one subject per row.")
     data$ID = as.character(seq(1, nrow(data), by = 1))
   }
+  rhovec <- c(1 - rho[[1]], rho[[1]], 1 - rho[[2]], rho[[2]])
 
-  # Split data according to ID
   data %>%
-    dplyr::select(.data$ID, .data$listening, .data$handedness) %>%
-    dplyr::arrange(.data$ID) %>%
+    tidyr::crossing(dominance = c("Left", "Right")) %>%
     dplyr::mutate(
-      handedness = dplyr::recode(.data$handedness, L = 0L, A = 0L, D = 1L, R = 1L)
+      handedness = dplyr::recode(.data$handedness, L = 0L, A = 0L, D = 1L, R = 1L),
+      ind = (.data$handedness == 0 & .data$dominance == "Left") +
+        (.data$handedness == 0 & .data$dominance == "Right") * 2L +
+        (.data$handedness == 1 & .data$dominance == "Left") * 3L +
+        (.data$handedness == 1 & .data$dominance == "Right") * 4L,
+      p_x1_cond = log(truncnorm::dtruncnorm(.data$listening, a = minval, b = maxval,
+                                            mean = mu[.data$ind], sd = sigma[.data$ind])),
+      p_alpha_x2 = log(rhovec[.data$ind])
+      ) %>%
+    dplyr::group_by(.data$ID, .data$dominance, .data$p_alpha_x2) %>%
+    dplyr::summarise_at(dplyr::vars(.data$p_x1_cond), sum) %>%
+    dplyr::group_by(.data$ID) %>%
+    dplyr::mutate(
+      log_posterior = .data$p_alpha_x2 + .data$p_x1_cond,
+      posterior = exp(.data$log_posterior - max(.data$log_posterior)),
+      posterior = .data$posterior / sum(.data$posterior)
     ) %>%
-    tidyr::nest(.data$listening, .key = "listening_measures") %>%
-    purrr::pmap_dfr(function(...) {
-      args <- list(...)
-      # p(alpha | x2)
-      p_alpha_x2 <- log(c(1 - rho[[args$handedness + 1]], rho[[args$handedness + 1]]))
-      # p(x1 | x2, alpha)
-      p_x1_cond <- purrr::map_dbl(if(args$handedness == 0) c(1, 2) else c(3, 4), function(x) {
-        if(is.null(mu_sem)){
-          sum(log(truncnorm::dtruncnorm(dplyr::pull(args$listening),
-                                     a = minval, b = maxval, mean = mu[x], sigma[x])))
-        } else {
-          mu_vec <- seq(from = minval, to = maxval, length.out = 1000)
-          sum(log(
-            matrix(
-              truncnorm::dtruncnorm(dplyr::pull(args$listening), a = minval, b = maxval, mean = mu[x], sd = sigma[x]),
-              ncol = 1) %*%
-                truncnorm::dtruncnorm(mu_vec, a = minval, b = maxval, mean = mu[x], sd = sigma[x])))
-        }
-      })
-      log_posterior <- p_alpha_x2 + p_x1_cond
-      posterior <- exp(log_posterior - max(log_posterior))
-      posterior <- posterior / sum(posterior)
-
-      dplyr::tibble(
-        ID = args$ID,
-        LeftDominance = posterior[[1]],
-        RightDominance = posterior[[2]]
-      )
-    })
+    dplyr::select(.data$ID, .data$posterior, .data$dominance) %>%
+    tidyr::pivot_wider(names_from = .data$dominance, values_from = .data$posterior) %>%
+    dplyr::rename_at(dplyr::vars(.data$Left, .data$Right), ~ paste0(., "Dominance"))
 }
 

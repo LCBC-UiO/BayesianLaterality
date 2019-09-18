@@ -56,7 +56,8 @@ predict_asymmetry(data)
 
 # Plot over a grid
 grid <- expand.grid(listening = seq(from = -100, to = 100, by = 1), handedness = c("A", "D"))
-predictions <- cbind(grid, predict_asymmetry(grid))
+grid$ID <- seq(1, nrow(grid), by = 1)
+predictions <- merge(grid, predict_asymmetry(grid), by = "ID")
 
 library(ggplot2)
 ggplot(predictions, aes(x = listening, y = LeftDominance, group = handedness, color = handedness)) +
