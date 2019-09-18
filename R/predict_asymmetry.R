@@ -100,6 +100,7 @@ predict_asymmetry <- function(data,
     ) %>%
     dplyr::select(.data$ID, .data$posterior, .data$dominance) %>%
     tidyr::pivot_wider(names_from = .data$dominance, values_from = .data$posterior) %>%
-    dplyr::rename_at(dplyr::vars(.data$Left, .data$Right), ~ paste0(., "Dominance"))
+    dplyr::rename_at(dplyr::vars(.data$Left, .data$Right), ~ paste0(., "Dominance")) %>%
+    dplyr::ungroup()
 }
 
