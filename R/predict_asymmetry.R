@@ -79,7 +79,7 @@ predict_asymmetry <- function(data,
   rhovec <- c(1 - rho[[1]], rho[[1]], 1 - rho[[2]], rho[[2]])
 
   data %>%
-    tidyr::crossing(dominance = c("Left", "Right")) %>%
+    tidyr::expand_grid(dominance = c("Left", "Right")) %>%
     dplyr::mutate(
       handedness = dplyr::recode(.data$handedness, L = 0L, A = 0L, D = 1L, R = 1L),
       ind = (.data$handedness == 0 & .data$dominance == "Left") +
