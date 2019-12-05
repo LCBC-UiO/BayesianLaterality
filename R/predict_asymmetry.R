@@ -65,7 +65,7 @@
 predict_asymmetry <- function(data,
                               mu = c(10, -24, 12, -24),
                               sigma = rep(22, 4),
-                              rho = c(0.31, 0.12),
+                              rho = c(0.20, 0.04),
                               mu_sem = NULL){
 
   minval <- -100.01

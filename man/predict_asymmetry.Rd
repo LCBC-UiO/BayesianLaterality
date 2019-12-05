@@ -4,8 +4,13 @@
 \alias{predict_asymmetry}
 \title{Predict brain asymmetry}
 \usage{
-predict_asymmetry(data, mu = c(10, -24, 12, -24), sigma = rep(22, 4),
-  rho = c(0.31, 0.12), mu_sem = NULL)
+predict_asymmetry(
+  data,
+  mu = c(10, -24, 12, -24),
+  sigma = rep(22, 4),
+  rho = c(0.2, 0.04),
+  mu_sem = NULL
+)
 }
 \arguments{
 \item{data}{Data frame with the following columns:
