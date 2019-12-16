@@ -6,9 +6,12 @@
 \usage{
 predict_asymmetry(
   data,
-  mu = c(10, -24, 12, -24),
-  sigma = rep(22, 4),
-  rho = c(0.2, 0.04),
+  mu = dplyr::tibble(handedness = c("adextral", "dextral"), left_dominant = c(10, 12),
+    bilateral = c(0, 0), right_dominant = c(-24, -24)),
+  sigma = dplyr::tibble(handedness = c("adextral", "dextral"), left_dominant = c(22,
+    22), bilateral = c(22, 22), right_dominant = c(22, 22)),
+  rho = dplyr::tibble(handedness = c("adextral", "dextral"), left_dominant = c(0.65,
+    0.88), bilateral = c(0.15, 0.08), right_dominant = c(0.2, 0.04)),
   mu_sem = NULL
 )
 }
@@ -40,11 +43,11 @@ Predict brain asymmetry
 }
 \examples{
 library(asymm)
+library(dplyr)
 
 # Three observations of three individuals
-data <- data.frame(handedness = c("A", "D", "D"),
-                   listening = c(-10, 20, 10),
-                   stringsAsFactors = FALSE)
+data <- tibble(handedness = c("A", "D", "D"),
+                   listening = c(-10, 20, 10))
 
 predict_asymmetry(data)
 
@@ -52,10 +55,9 @@ predict_asymmetry(data)
 predict_asymmetry(data, mu_sem = c(4.6, 7.0, 4.3, 7.0))
 
 # Multiple observations
-data <- data.frame(ID = c(1, 1, 2),
+data <- tibble(ID = c(1, 1, 2),
                    handedness = c("A", "A", "D"),
-                   listening = c(-10, 20, 10),
-                   stringsAsFactors = FALSE)
+                   listening = c(-10, 20, 10))
 
 predict_asymmetry(data)
 
@@ -73,5 +75,13 @@ ggplot(predictions, aes(x = listening, y = LeftDominance, group = handedness, co
   ylab("Probability of left brain asymmetry") +
   theme(text = element_text(size = 16),
         legend.title = element_blank())
+
+ library(tidyr)
+data <- tibble(
+listening = numeric(),
+handedness = character()
+) \%>\%
+  expand(listening = seq(from = -100, to = 100, by = 1), handedness = c("A", "D")) \%>\%
+ mutate(ID = row_number())
 
 }

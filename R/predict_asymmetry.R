@@ -25,11 +25,11 @@
 #'
 #' @examples
 #' library(asymm)
+#' library(dplyr)
 #'
 #' # Three observations of three individuals
-#' data <- data.frame(handedness = c("A", "D", "D"),
-#'                    listening = c(-10, 20, 10),
-#'                    stringsAsFactors = FALSE)
+#' data <- tibble(handedness = c("A", "D", "D"),
+#'                    listening = c(-10, 20, 10))
 #'
 #' predict_asymmetry(data)
 #'
@@ -37,10 +37,9 @@
 #' predict_asymmetry(data, mu_sem = c(4.6, 7.0, 4.3, 7.0))
 #'
 #' # Multiple observations
-#' data <- data.frame(ID = c(1, 1, 2),
+#' data <- tibble(ID = c(1, 1, 2),
 #'                    handedness = c("A", "A", "D"),
-#'                    listening = c(-10, 20, 10),
-#'                    stringsAsFactors = FALSE)
+#'                    listening = c(-10, 20, 10))
 #'
 #' predict_asymmetry(data)
 #'
@@ -59,13 +58,32 @@
 #'   theme(text = element_text(size = 16),
 #'         legend.title = element_blank())
 #'
+#'  library(tidyr)
+#' data <- tibble(
+#' listening = numeric(),
+#' handedness = character()
+#' ) %>%
+#'   expand(listening = seq(from = -100, to = 100, by = 1), handedness = c("A", "D")) %>%
+#'  mutate(ID = row_number())
+#'
 #' @importFrom magrittr "%>%"
-#' @importFrom rlang .data
 #'
 predict_asymmetry <- function(data,
-                              mu = c(10, -24, 12, -24),
-                              sigma = rep(22, 4),
-                              rho = c(0.20, 0.04),
+                              mu = dplyr::tibble(
+                                handedness = c("adextral", "dextral"),
+                                left_dominant = c(10, 12),
+                                bilateral = c(0, 0),
+                                right_dominant = c(-24, -24)),
+                              sigma = dplyr::tibble(
+                                handedness = c("adextral", "dextral"),
+                                left_dominant = c(22, 22),
+                                bilateral = c(22, 22),
+                                right_dominant = c(22, 22)),
+                              rho = dplyr::tibble(
+                                handedness = c("adextral", "dextral"),
+                                left_dominant = c(.65, .88),
+                                bilateral = c(.15, .08),
+                                right_dominant = c(.20, .04)),
                               mu_sem = NULL){
 
   minval <- -100.01
@@ -76,31 +94,36 @@ predict_asymmetry <- function(data,
     message("No ID column in data, assuming one subject per row.")
     data$ID = as.character(seq(1, nrow(data), by = 1))
   }
-  rhovec <- c(1 - rho[[1]], rho[[1]], 1 - rho[[2]], rho[[2]])
 
+
+  mu <- tidyr::pivot_longer(mu, -.data$handedness, names_to = "laterality", values_to = "mu")
+  sigma <- tidyr::pivot_longer(sigma, -.data$handedness, names_to = "laterality", values_to = "sigma")
+  rho <- tidyr::pivot_longer(rho, -.data$handedness, names_to = "laterality", values_to = "rho")
+
+  # Join in all the probabilities and compute p(x_1 | x_2, alpha)
   data %>%
-    tidyr::expand_grid(dominance = c("Left", "Right")) %>%
     dplyr::mutate(
-      handedness = dplyr::recode(.data$handedness, L = 0L, A = 0L, D = 1L, R = 1L),
-      ind = (.data$handedness == 0 & .data$dominance == "Left") +
-        (.data$handedness == 0 & .data$dominance == "Right") * 2L +
-        (.data$handedness == 1 & .data$dominance == "Left") * 3L +
-        (.data$handedness == 1 & .data$dominance == "Right") * 4L,
-      p_x1_cond = log(truncnorm::dtruncnorm(.data$listening, a = minval, b = maxval,
-                                            mean = mu[.data$ind], sd = sigma[.data$ind])),
-      p_alpha_x2 = log(rhovec[.data$ind])
-      ) %>%
-    dplyr::group_by(.data$ID, .data$dominance, .data$p_alpha_x2) %>%
-    dplyr::summarise_at(dplyr::vars(.data$p_x1_cond), sum) %>%
+      handedness = dplyr::recode(.data$handedness, L = "adextral",
+                                 A = "adextral", D = "dextral", R = "dextral"),
+    ) %>%
+    dplyr::inner_join(mu, by = "handedness") %>%
+    dplyr::inner_join(sigma, by = c("handedness", "laterality")) %>%
+    dplyr::group_by(.data$ID, .data$handedness, .data$laterality) %>%
+    dplyr::summarise(
+      p_x1_cond = sum(log(truncnorm::dtruncnorm(.data$listening, a = minval, b = maxval,
+                                             mean = .data$mu, sd = .data$sigma)))
+    ) %>%
+    dplyr::inner_join(rho, by = c("handedness", "laterality")) %>%
     dplyr::group_by(.data$ID) %>%
     dplyr::mutate(
-      log_posterior = .data$p_alpha_x2 + .data$p_x1_cond,
+      p_alpha_x2 = log(.data$rho),
+      log_posterior = .data$p_x1_cond + .data$p_alpha_x2,
       posterior = exp(.data$log_posterior - max(.data$log_posterior)),
       posterior = .data$posterior / sum(.data$posterior)
-    ) %>%
-    dplyr::select(.data$ID, .data$posterior, .data$dominance) %>%
-    tidyr::pivot_wider(names_from = .data$dominance, values_from = .data$posterior) %>%
-    dplyr::rename_at(dplyr::vars(.data$Left, .data$Right), ~ paste0(., "Dominance")) %>%
-    dplyr::ungroup()
+      ) %>%
+    dplyr::ungroup() %>%
+    dplyr::select(.data$ID, .data$handedness, .data$laterality, .data$posterior) %>%
+    tidyr::pivot_wider(names_from = "laterality", values_from = "posterior", names_prefix = "prob_")
+
 }
 
