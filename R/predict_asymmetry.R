@@ -1,93 +1,82 @@
-#' Predict brain asymmetry
+#' Predict hemispheric dominance
 #'
 #' @param data Data frame with the following columns:
 #' \itemize{
 #' \item \code{listening}: Score between -100 and 100.
-#' \item \code{handedness}: \code{"L"} or \code{"A"} for adextral (non-right-handed) and
-#' \code{"R"} or \code{"D"} for dextrals (right-handed)
+#' \item \code{handedness}: \code{"left"} for adextral (non-right-handed) and
+#'       \code{"right"} for dextral (right-handed)
+#'       }
+#'  In addition, an optional column name \code{ID}
+#'   can be provided, giving the subject ID. If a subject has multiple
+#'   measurements, the posterior based on all measurements is provided. If the
+#'   \code{ID} column is missing, each row is assumed to be measured on a
+#'   separate subject.
+#'
+#' @param parameters Data frame in which the first two columns specify combinations
+#' of hemispheric dominance and handedness and the last three columns specify
+#' the corresponding parameter values. In particular, the columns are defined as follows:
+#' \itemize{
+#' \item \code{dominance}: character specifying hemispheric dominance.
+#' \item \code{handedness}: character specifying handedness.
+#' \item \code{mean_li}: mean dichotic listening score.
+#' \item \code{sd_li}: standard deviation of dichotic listening score.
+#' \item \code{prob_dominance}: probability of hemispheric dominance given handedness.
 #' }
-#' In additional, an optional column name \code{ID} can be provided, giving the subject ID. If a
-#' subject has multiple measurements, the posterior based on all measurements is provided. If the
-#' \code{ID} column is missing, each row is assumed to be measured on a separate subject.
+#' @param truncation Numeric vector with two elements specifying the lower and upper
+#' bounds for truncation of the normal distribution for dichotic listening scores.
+#' @param icc Intraclass correlation for repeated measurements on the same individual.
+#' If not specified, and if \code{data} contains repeated measurements, it is computed
+#' from the data. Setting \code{icc=0} implies that repeated measurements on the same
+#' individual are assumed to be conditionally independent given handedness and
+#' hemispheric dominance.
 #'
-#'
-#' @param mu Vector of mean dichotic listening scores.
-#'
-#' @param sigma Vector of standard deviation of dichotic listening scores.
-#'
-#' @param rho Probability of dextrality given left or right hemispheric dominance.
-#'
-#' @param mu_sem Vector representing the standard error of the mean of \code{mu}. If provided, a hierarchical model
-#' is computed.
-#'
-#' @return The probability of left or right hemispheric dominance in additional columns of \code{data}.
+#' @return The probability of left or right hemispheric dominance in additional
+#'   columns of \code{data}.
 #' @export
-#'
 #' @examples
-#' library(asymm)
-#' library(dplyr)
-#'
-#' # Three observations of three individuals
-#' data <- tibble(handedness = c("A", "D", "D"),
-#'                    listening = c(-10, 20, 10))
-#'
+#' ## Simple test dataset
+#' data <- data.frame(
+#'           listening = c(-20, -23, -14),
+#'           handedness = "left",
+#'           stringsAsFactors = FALSE
+#'          )
+#' ## Compute predictions
 #' predict_asymmetry(data)
 #'
-#' # Take into account uncertainty in the parameters for mean speech laterlization scores.
-#' predict_asymmetry(data, mu_sem = c(4.6, 7.0, 4.3, 7.0))
-#'
-#' # Multiple observations
-#' data <- tibble(ID = c(1, 1, 2),
-#'                    handedness = c("A", "A", "D"),
-#'                    listening = c(-10, 20, 10))
-#'
-#' predict_asymmetry(data)
-#'
-#' # Plot over a grid
-#' grid <- expand.grid(listening = seq(from = -100, to = 100, by = 1), handedness = c("A", "D"))
-#' grid$ID <- seq(1, nrow(grid), by = 1)
-#' predictions <- merge(grid, predict_asymmetry(grid), by = "ID")
-#'
-#' library(ggplot2)
-#' ggplot(predictions, aes(x = listening, y = LeftDominance, group = handedness, color = handedness)) +
-#'   geom_line() +
-#'   geom_hline(yintercept = 0.05, color = "gray", lwd = 1) +
-#'   geom_hline(yintercept = 0.95, color = "gray", lwd = 1) +
-#'   xlab("Speech lateralization score") +
-#'   ylab("Probability of left brain asymmetry") +
-#'   theme(text = element_text(size = 16),
-#'         legend.title = element_blank())
-#'
-#'  library(tidyr)
+#' ## More interesting example, with multiple measurements per individual.
+#' library(dplyr); library(purrr); library(tidyr); library(truncnorm)
+#' ## First we sample test data
+#' n <- 100 # number of individuals
+#' reps <- 3 # number of measurements per individual
+#' ## The distribution of subject means has standard deviation 10, and the
+#' ## actual measurements for each subject are distributed with a standard
+#' ## deviation of 10 around this mean.
+#' set.seed(234)
 #' data <- tibble(
-#' listening = numeric(),
-#' handedness = character()
-#' ) %>%
-#'   expand(listening = seq(from = -100, to = 100, by = 1), handedness = c("A", "D")) %>%
-#'  mutate(ID = row_number())
+#'                ID = factor(1:n),
+#'                subject_mean = rtruncnorm(n, a = 0, b = 100, mean = 10, sd = 10),
+#'                handedness = "left") %>%
+#'   mutate(
+#'     listening = map(subject_mean, ~ rtruncnorm(reps, a = -100, b = 100,
+#'                     mean = .x, sd = 10))
+#'   ) %>%
+#'   unnest(listening)
 #'
-#' @importFrom magrittr "%>%"
+#' predict_asymmetry(data)
+#'
 #'
 predict_asymmetry <- function(data,
-                              mu = dplyr::tibble(
-                                handedness = c("adextral", "dextral"),
-                                left_dominant = c(10, 12),
-                                bilateral = c(0, 0),
-                                right_dominant = c(-24, -24)),
-                              sigma = dplyr::tibble(
-                                handedness = c("adextral", "dextral"),
-                                left_dominant = c(22, 22),
-                                bilateral = c(22, 22),
-                                right_dominant = c(22, 22)),
-                              rho = dplyr::tibble(
-                                handedness = c("adextral", "dextral"),
-                                left_dominant = c(.65, .88),
-                                bilateral = c(.15, .08),
-                                right_dominant = c(.20, .04)),
-                              mu_sem = NULL){
+                              parameters = dplyr::tibble(
+                                dominance = rep(c("left", "right", "none"), each = 2),
+                                handedness = rep(c("left", "right"), 3),
+                                mean_li = c(10, 12, -24, -24, 0, 0),
+                                sd_li = rep(22, 6),
+                                prob_dominance = c(.65, .87, .20, .04, .15, .09)
+                              ),
+                              truncation = c(-100, 100),
+                              icc = NULL
+                              ){
 
-  minval <- -100.01
-  maxval <- 100.01
 
   # Check if data contains an ID column
   if(!"ID" %in% colnames(data)) {
@@ -95,35 +84,30 @@ predict_asymmetry <- function(data,
     data$ID = as.character(seq(1, nrow(data), by = 1))
   }
 
+  if(is.null(icc)){
+    icc <- dplyr::coalesce(ICC::ICCbare(factor(data$ID), data$listening), 0)
+    message(paste0("Intraclass correlation estimated to ", round(icc, 3), "."))
+  }
 
-  mu <- tidyr::pivot_longer(mu, -.data$handedness, names_to = "laterality", values_to = "mu")
-  sigma <- tidyr::pivot_longer(sigma, -.data$handedness, names_to = "laterality", values_to = "sigma")
-  rho <- tidyr::pivot_longer(rho, -.data$handedness, names_to = "laterality", values_to = "rho")
+  dat1 <- dplyr::inner_join(data, parameters, by = "handedness")
+  dat2 <- tidyr::nest(dat1, df = c(.data$listening, .data$mean_li, .data$sd_li))
+  dat3 <- dplyr::mutate(dat2,
+                log_prob_listening = purrr::map_dbl(.data$df, function(x) {
+                  tmvtnorm::dtmvnorm(x$listening,
+                                     mean = x$mean_li,
+                                     sigma = x$sd_li^2 * (diag(nrow(x)) * (1 - icc) + icc),
+                                     lower = rep(truncation[[1]], nrow(x)),
+                                     upper = rep(truncation[[2]], nrow(x)),
+                                     log = TRUE
+                                     )
+                }),
+                log_posterior = log(.data$prob_dominance) + .data$log_prob_listening,
+                probability = exp(.data$log_posterior)
+                )
+  dat4 <- dplyr::group_by(dat3, .data$ID)
+  dat5 <- dplyr::mutate(dat4, probability = .data$probability / sum(.data$probability))
 
-  # Join in all the probabilities and compute p(x_1 | x_2, alpha)
-  data %>%
-    dplyr::mutate(
-      handedness = dplyr::recode(.data$handedness, L = "adextral",
-                                 A = "adextral", D = "dextral", R = "dextral"),
-    ) %>%
-    dplyr::inner_join(mu, by = "handedness") %>%
-    dplyr::inner_join(sigma, by = c("handedness", "laterality")) %>%
-    dplyr::group_by(.data$ID, .data$handedness, .data$laterality) %>%
-    dplyr::summarise(
-      p_x1_cond = sum(log(truncnorm::dtruncnorm(.data$listening, a = minval, b = maxval,
-                                             mean = .data$mu, sd = .data$sigma)))
-    ) %>%
-    dplyr::inner_join(rho, by = c("handedness", "laterality")) %>%
-    dplyr::group_by(.data$ID) %>%
-    dplyr::mutate(
-      p_alpha_x2 = log(.data$rho),
-      log_posterior = .data$p_x1_cond + .data$p_alpha_x2,
-      posterior = exp(.data$log_posterior - max(.data$log_posterior)),
-      posterior = .data$posterior / sum(.data$posterior)
-      ) %>%
-    dplyr::ungroup() %>%
-    dplyr::select(.data$ID, .data$handedness, .data$laterality, .data$posterior) %>%
-    tidyr::pivot_wider(names_from = "laterality", values_from = "posterior", names_prefix = "prob_")
-
+  dplyr::select(dplyr::ungroup(dat5), .data$ID, .data$handedness,
+                .data$dominance, .data$probability)
 }
 

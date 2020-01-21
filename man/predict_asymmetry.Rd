@@ -2,86 +2,87 @@
 % Please edit documentation in R/predict_asymmetry.R
 \name{predict_asymmetry}
 \alias{predict_asymmetry}
-\title{Predict brain asymmetry}
+\title{Predict hemispheric dominance}
 \usage{
 predict_asymmetry(
   data,
-  mu = dplyr::tibble(handedness = c("adextral", "dextral"), left_dominant = c(10, 12),
-    bilateral = c(0, 0), right_dominant = c(-24, -24)),
-  sigma = dplyr::tibble(handedness = c("adextral", "dextral"), left_dominant = c(22,
-    22), bilateral = c(22, 22), right_dominant = c(22, 22)),
-  rho = dplyr::tibble(handedness = c("adextral", "dextral"), left_dominant = c(0.65,
-    0.88), bilateral = c(0.15, 0.08), right_dominant = c(0.2, 0.04)),
-  mu_sem = NULL
+  parameters = dplyr::tibble(dominance = rep(c("left", "right", "none"), each = 2),
+    handedness = rep(c("left", "right"), 3), mean_li = c(10, 12, -24, -24, 0, 0), sd_li =
+    rep(22, 6), prob_dominance = c(0.65, 0.87, 0.2, 0.04, 0.15, 0.09)),
+  truncation = c(-100, 100),
+  icc = NULL
 )
 }
 \arguments{
 \item{data}{Data frame with the following columns:
 \itemize{
 \item \code{listening}: Score between -100 and 100.
-\item \code{handedness}: \code{"L"} or \code{"A"} for adextral (non-right-handed) and
-\code{"R"} or \code{"D"} for dextrals (right-handed)
-}
-In additional, an optional column name \code{ID} can be provided, giving the subject ID. If a
-subject has multiple measurements, the posterior based on all measurements is provided. If the
-\code{ID} column is missing, each row is assumed to be measured on a separate subject.}
+\item \code{handedness}: \code{"left"} for adextral (non-right-handed) and
+      \code{"right"} for dextral (right-handed)
+      }
+ In addition, an optional column name \code{ID}
+  can be provided, giving the subject ID. If a subject has multiple
+  measurements, the posterior based on all measurements is provided. If the
+  \code{ID} column is missing, each row is assumed to be measured on a
+  separate subject.}
 
-\item{mu}{Vector of mean dichotic listening scores.}
+\item{parameters}{Data frame in which the first two columns specify combinations
+of hemispheric dominance and handedness and the last three columns specify
+the corresponding parameter values. In particular, the columns are defined as follows:
+\itemize{
+\item \code{dominance}: character specifying hemispheric dominance.
+\item \code{handedness}: character specifying handedness.
+\item \code{mean_li}: mean dichotic listening score.
+\item \code{sd_li}: standard deviation of dichotic listening score.
+\item \code{prob_dominance}: probability of hemispheric dominance given handedness.
+}}
 
-\item{sigma}{Vector of standard deviation of dichotic listening scores.}
+\item{truncation}{Numeric vector with two elements specifying the lower and upper
+bounds for truncation of the normal distribution for dichotic listening scores.}
 
-\item{rho}{Probability of dextrality given left or right hemispheric dominance.}
-
-\item{mu_sem}{Vector representing the standard error of the mean of \code{mu}. If provided, a hierarchical model
-is computed.}
+\item{icc}{Intraclass correlation for repeated measurements on the same individual.
+If not specified, and if \code{data} contains repeated measurements, it is computed
+from the data. Setting \code{icc=0} implies that repeated measurements on the same
+individual are assumed to be conditionally independent given handedness and
+hemispheric dominance.}
 }
 \value{
-The probability of left or right hemispheric dominance in additional columns of \code{data}.
+The probability of left or right hemispheric dominance in additional
+  columns of \code{data}.
 }
 \description{
-Predict brain asymmetry
+Predict hemispheric dominance
 }
 \examples{
-library(asymm)
-library(dplyr)
-
-# Three observations of three individuals
-data <- tibble(handedness = c("A", "D", "D"),
-                   listening = c(-10, 20, 10))
-
+## Simple test dataset
+data <- data.frame(
+          listening = c(-20, -23, -14),
+          handedness = "left",
+          stringsAsFactors = FALSE
+         )
+## Compute predictions
 predict_asymmetry(data)
 
-# Take into account uncertainty in the parameters for mean speech laterlization scores.
-predict_asymmetry(data, mu_sem = c(4.6, 7.0, 4.3, 7.0))
-
-# Multiple observations
-data <- tibble(ID = c(1, 1, 2),
-                   handedness = c("A", "A", "D"),
-                   listening = c(-10, 20, 10))
-
-predict_asymmetry(data)
-
-# Plot over a grid
-grid <- expand.grid(listening = seq(from = -100, to = 100, by = 1), handedness = c("A", "D"))
-grid$ID <- seq(1, nrow(grid), by = 1)
-predictions <- merge(grid, predict_asymmetry(grid), by = "ID")
-
-library(ggplot2)
-ggplot(predictions, aes(x = listening, y = LeftDominance, group = handedness, color = handedness)) +
-  geom_line() +
-  geom_hline(yintercept = 0.05, color = "gray", lwd = 1) +
-  geom_hline(yintercept = 0.95, color = "gray", lwd = 1) +
-  xlab("Speech lateralization score") +
-  ylab("Probability of left brain asymmetry") +
-  theme(text = element_text(size = 16),
-        legend.title = element_blank())
-
- library(tidyr)
+## More interesting example, with multiple measurements per individual.
+library(dplyr); library(purrr); library(tidyr); library(truncnorm)
+## First we sample test data
+n <- 100 # number of individuals
+reps <- 3 # number of measurements per individual
+## The distribution of subject means has standard deviation 10, and the
+## actual measurements for each subject are distributed with a standard
+## deviation of 10 around this mean.
+set.seed(234)
 data <- tibble(
-listening = numeric(),
-handedness = character()
-) \%>\%
-  expand(listening = seq(from = -100, to = 100, by = 1), handedness = c("A", "D")) \%>\%
- mutate(ID = row_number())
+               ID = factor(1:n),
+               subject_mean = rtruncnorm(n, a = 0, b = 100, mean = 10, sd = 10),
+               handedness = "left") \%>\%
+  mutate(
+    listening = map(subject_mean, ~ rtruncnorm(reps, a = -100, b = 100,
+                    mean = .x, sd = 10))
+  ) \%>\%
+  unnest(listening)
+
+predict_asymmetry(data)
+
 
 }
