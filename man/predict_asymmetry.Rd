@@ -10,7 +10,7 @@ predict_asymmetry(
     handedness = rep(c("left", "right"), 3), mean_li = c(10, 12, -24, -24, 0, 0), sd_li =
     rep(22, 6), prob_dominance = c(0.65, 0.87, 0.2, 0.04, 0.15, 0.09)),
   truncation = c(-100, 100),
-  icc = NULL
+  icc = 0
 )
 }
 \arguments{
@@ -41,10 +41,7 @@ the corresponding parameter values. In particular, the columns are defined as fo
 bounds for truncation of the normal distribution for dichotic listening scores.}
 
 \item{icc}{Intraclass correlation for repeated measurements on the same individual.
-If not specified, and if \code{data} contains repeated measurements, it is computed
-from the data. Setting \code{icc=0} implies that repeated measurements on the same
-individual are assumed to be conditionally independent given handedness and
-hemispheric dominance.}
+Defaults to 0.}
 }
 \value{
 The probability of left or right hemispheric dominance in additional

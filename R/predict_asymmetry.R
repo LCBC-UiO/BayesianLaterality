@@ -25,10 +25,7 @@
 #' @param truncation Numeric vector with two elements specifying the lower and upper
 #' bounds for truncation of the normal distribution for dichotic listening scores.
 #' @param icc Intraclass correlation for repeated measurements on the same individual.
-#' If not specified, and if \code{data} contains repeated measurements, it is computed
-#' from the data. Setting \code{icc=0} implies that repeated measurements on the same
-#' individual are assumed to be conditionally independent given handedness and
-#' hemispheric dominance.
+#' Defaults to 0.
 #'
 #' @return The probability of left or right hemispheric dominance in additional
 #'   columns of \code{data}.
@@ -74,9 +71,10 @@ predict_asymmetry <- function(data,
                                 prob_dominance = c(.65, .87, .20, .04, .15, .09)
                               ),
                               truncation = c(-100, 100),
-                              icc = NULL
+                              icc = 0
                               ){
 
+  stopifnot(icc >= -1 && icc <= 1)
 
   # Check if data contains an ID column
   if(!"ID" %in% colnames(data)) {
@@ -84,12 +82,10 @@ predict_asymmetry <- function(data,
     data$ID = as.character(seq(1, nrow(data), by = 1))
   }
 
-  if(is.null(icc)){
-    icc <- dplyr::coalesce(ICC::ICCbare(factor(data$ID), data$listening), 0)
-    message(paste0("Intraclass correlation estimated to ", round(icc, 3), "."))
-  }
-
-  dat1 <- dplyr::inner_join(data, parameters, by = "handedness")
+  dat1 <- dplyr::select(data, .data$ID, .data$listening, .data$handedness)
+  dat1 <- dplyr::inner_join(dat1, parameters, by = "handedness")
+  dat1 <- dplyr::select(dat1, .data$ID, .data$handedness, .data$dominance,
+                        .data$prob_dominance, .data$mean_li, .data$sd_li, .data$listening)
   dat2 <- tidyr::nest(dat1, df = c(.data$listening, .data$mean_li, .data$sd_li))
   dat3 <- dplyr::mutate(dat2,
                 log_prob_listening = purrr::map_dbl(.data$df, function(x) {
