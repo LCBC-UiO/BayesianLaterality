@@ -1,4 +1,4 @@
-Package: asymm
+Package: BayesianLaterality
 Type: Package
 Title: Predict brain asymmetry based on handedness and dichotic listening
 Version: 0.1.0
