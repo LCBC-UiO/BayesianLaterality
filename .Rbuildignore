@@ -3,3 +3,4 @@
 ^\.Rproj\.user$
 ^README\.Rmd$
 ^test_data\.R$
+^\.travis\.yml$
