@@ -38,7 +38,7 @@
 #'           stringsAsFactors = FALSE
 #'          )
 #' ## Compute predictions
-#' predict_asymmetry(data)
+#' predict_dominance(data)
 #'
 #' ## More interesting example, with multiple measurements per individual.
 #' library(dplyr); library(purrr); library(tidyr); library(truncnorm)
@@ -59,16 +59,16 @@
 #'   ) %>%
 #'   unnest(listening)
 #'
-#' predict_asymmetry(data)
+#' predict_dominance(data)
 #'
 #'
-predict_asymmetry <- function(data,
+predict_dominance <- function(data,
                               parameters = dplyr::tibble(
                                 dominance = rep(c("left", "right", "none"), each = 2),
                                 handedness = rep(c("left", "right"), 3),
                                 mean_li = c(10, 12, -24, -24, 0, 0),
-                                sd_li = rep(22, 6),
-                                prob_dominance = c(.65, .87, .20, .04, .15, .09)
+                                sd_li = c(24.9, 17.0, 24.9, 17.0, 22, 22),
+                                prob_dominance = c(.65, .87, .35, .13, 0, 0)
                               ),
                               truncation = c(-100, 100),
                               icc = 0

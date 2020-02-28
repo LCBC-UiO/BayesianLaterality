@@ -5,6 +5,8 @@
 
 <!-- badges: start -->
 
+[![Travis build
+status](https://travis-ci.org/LCBC-UiO/BayesianLaterality.svg?branch=master)](https://travis-ci.org/LCBC-UiO/BayesianLaterality)
 <!-- badges: end -->
 
 The goal of BayesianLaterality is to predict latent hemispheric
