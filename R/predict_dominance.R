@@ -31,37 +31,23 @@
 #'   columns of \code{data}.
 #' @export
 #' @examples
-#' ## Simple test dataset
-#' data <- data.frame(
-#'           listening = c(-20, -23, -14),
-#'           handedness = "left",
-#'           stringsAsFactors = FALSE
-#'          )
-#' ## Compute predictions
-#' predict_dominance(data)
+#' # The package comes with two example datasets.
+#' # The first contains single measurements on three subjects.
+#' # We can first take a look at the data
+#' example_data1
+#' # Next, compute predictions.
+#' # Since there is no ID column, predict_dominance() will print a message telling
+#' # the user that the rows are assumed to contain observations from different subjects.
+#' predict_dominance(example_data1)
 #'
-#' ## More interesting example, with multiple measurements per individual.
-#' library(dplyr); library(purrr); library(tidyr); library(truncnorm)
-#' ## First we sample test data
-#' n <- 100 # number of individuals
-#' reps <- 3 # number of measurements per individual
-#' ## The distribution of subject means has standard deviation 10, and the
-#' ## actual measurements for each subject are distributed with a standard
-#' ## deviation of 10 around this mean.
-#' set.seed(234)
-#' data <- tibble(
-#'                ID = factor(1:n),
-#'                subject_mean = rtruncnorm(n, a = 0, b = 100, mean = 10, sd = 10),
-#'                handedness = "left") %>%
-#'   mutate(
-#'     listening = map(subject_mean, ~ rtruncnorm(reps, a = -100, b = 100,
-#'                     mean = .x, sd = 10))
-#'   ) %>%
-#'   unnest(listening)
+#' # The next example dataset contains repeated measurements
+#' example_data2
 #'
-#' predict_dominance(data)
+#' # We compute the predictions as before:
+#' predict_dominance(example_data2)
 #'
 #'
+#' @importFrom rlang .data
 predict_dominance <- function(data,
                               parameters = dplyr::tibble(
                                 dominance = rep(c("left", "right", "none"), each = 2),
@@ -82,11 +68,11 @@ predict_dominance <- function(data,
     data$ID = as.character(seq(1, nrow(data), by = 1))
   }
 
-  dat1 <- dplyr::select(data, .data$ID, .data$listening, .data$handedness)
+  dat1 <- dplyr::select_at(data, dplyr::vars("ID", "listening", "handedness"))
   dat1 <- dplyr::inner_join(dat1, parameters, by = "handedness")
-  dat1 <- dplyr::select(dat1, .data$ID, .data$handedness, .data$dominance,
-                        .data$prob_dominance, .data$mean_li, .data$sd_li, .data$listening)
-  dat2 <- tidyr::nest(dat1, df = c(.data$listening, .data$mean_li, .data$sd_li))
+  dat1 <- dplyr::select_at(dat1, dplyr::vars("ID", "handedness", "dominance",
+                                             "prob_dominance", "mean_li", "sd_li", "listening"))
+  dat2 <- tidyr::nest(dat1, df = c("listening", "mean_li", "sd_li"))
   dat3 <- dplyr::mutate(dat2,
                 log_prob_listening = purrr::map_dbl(.data$df, function(x) {
                   tmvtnorm::dtmvnorm(x$listening,
@@ -100,10 +86,10 @@ predict_dominance <- function(data,
                 log_posterior = log(.data$prob_dominance) + .data$log_prob_listening,
                 probability = exp(.data$log_posterior)
                 )
-  dat4 <- dplyr::group_by(dat3, .data$ID)
-  dat5 <- dplyr::mutate(dat4, probability = .data$probability / sum(.data$probability))
+  dat4 <- dplyr::group_by_at(dat3, dplyr::vars("ID"))
+  dat5 <- dplyr::mutate_at(dat4, dplyr::vars("probability"), ~ . / sum(.))
 
-  dplyr::select(dplyr::ungroup(dat5), .data$ID, .data$handedness,
-                .data$dominance, .data$probability)
+  dplyr::select_at(dplyr::ungroup(dat5), dplyr::vars("ID", "handedness",
+                                                     "dominance", "probability"))
 }
 
