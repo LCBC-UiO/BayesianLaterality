@@ -1,0 +1,13 @@
+citHeader("To cite BayesianLaterality in publications use:")
+
+citEntry(
+  entry    = "Misc",
+  title    = "From observed laterality to latent hemispheric differences: revisiting the inference problem",
+  author   = c(person("S{\\o}rensen", "{\\O}ystein"),
+                    person("Westerhausen", "Ren{\\'e}")),
+  publisher  = "PsyArXiv",
+  year     = 2020,
+  url="psyarxiv.com/yvmxc",
+  DOI= "10.31234/osf.io/yvmxc",
+  textVersion = "Sørensen, Ø., & Westerhausen, R. (2020, February 29). From observed laterality to latent hemispheric differences: revisiting the inference problem. https://doi.org/10.31234/osf.io/yvmxc"
+)
