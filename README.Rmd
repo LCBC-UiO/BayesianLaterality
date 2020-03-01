@@ -19,7 +19,7 @@ knitr::opts_chunk$set(
 [![Travis build status](https://travis-ci.org/LCBC-UiO/BayesianLaterality.svg?branch=master)](https://travis-ci.org/LCBC-UiO/BayesianLaterality)
 <!-- badges: end -->
 
-The goal of BayesianLaterality is to predict latent hemispheric dominance based on observed laterality.
+The goal of BayesianLaterality is to predict latent hemispheric dominance based on observed laterality using Bayes' theorem.
 
 ## Installation
 
@@ -32,5 +32,23 @@ remotes::install_github("LCBC-UiO/BayesianLaterality")
 ```
 
 
+## Application Example
+
+```{r}
+library(BayesianLaterality)
+```
+
+
+The main (and only) function of the package is `predict_dominance()`. To see the arguments that can be set by the user and a more extended example, type `?predict_dominance` in the R terminal. Here is a simple example. The dataset `example_data1` contains three laterality measurements on three right-handed individuals.
+
+```{r}
+example_data1
+```
+
+We then obtain predicted hemispheric dominance as follows. The ID column reflects the row in the original dataset.
+
+```{r}
+predict_dominance(example_data1)
+```
 
 
