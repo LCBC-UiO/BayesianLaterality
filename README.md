@@ -9,8 +9,10 @@
 status](https://travis-ci.org/LCBC-UiO/BayesianLaterality.svg?branch=master)](https://travis-ci.org/LCBC-UiO/BayesianLaterality)
 <!-- badges: end -->
 
-The goal of BayesianLaterality is to predict latent hemispheric
-dominance based on observed laterality using Bayes’ theorem.
+BayesianLaterality contains a function for predicting latent hemispheric
+dominance based on observed laterality using a Bayes classifier
+developed by [Sørensen and Westerhausen
+(2020)](https://doi.org/10.31234/osf.io/yvmxc).
 
 ## Installation
 
