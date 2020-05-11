@@ -4,11 +4,21 @@ Title: Predict brain asymmetry based on handedness and dichotic listening
 Version: 0.1.0
 Author: Oystein Sorensen
 Maintainer: Oystein Sorensen <oystein.sorensen.1985@gmail.com>
-Description: The package implements a function using Bayesian inference to predict brain asymmetry using data on handedness and results from dichotic listening tests.
+Description: Functional differences between the cerebral hemispheres 
+    are a fundamental characteristic of the human brain. Researchers 
+    interested in studying these differences often infer underlying 
+    hemispheric dominance for a certain function (e.g., language) from 
+    laterality indices calculated from observed performance or brain 
+    activation measures . However, any inference from observed measures 
+    to latent (unobserved) classes has to consider the prior probability 
+    of class membership in the population. The provided functions 
+    implement a Bayesian model for predicting hemispheric dominance from
+    observed laterality indices (Sorensen and Westerhausen, Laterality: 
+    Asymmetries of Body, Brain and Cognition, 2020, <doi:10.17605/OSF.IO/MKWCR>).
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.0.2
+RoxygenNote: 7.1.0
 Depends: R (>= 2.10)
 Imports: ICC (>= 2.3.0),
   dplyr (>= 0.8.1),

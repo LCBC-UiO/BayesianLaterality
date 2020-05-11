@@ -4,7 +4,9 @@
 \name{example_data2}
 \alias{example_data2}
 \title{Example dataset with three measurements each on 100 individuals.}
-\format{An object of class \code{tbl_df} (inherits from \code{tbl}, \code{data.frame}) with 300 rows and 4 columns.}
+\format{
+An object of class \code{tbl_df} (inherits from \code{tbl}, \code{data.frame}) with 300 rows and 4 columns.
+}
 \usage{
 example_data2
 }
