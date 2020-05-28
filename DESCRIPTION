@@ -14,7 +14,7 @@ Description: Functional differences between the cerebral hemispheres
     of class membership in the population. The provided functions 
     implement a Bayesian model for predicting hemispheric dominance from
     observed laterality indices (Sorensen and Westerhausen, Laterality: 
-    Asymmetries of Body, Brain and Cognition, 2020, <doi:10.17605/OSF.IO/MKWCR>).
+    Asymmetries of Body, Brain and Cognition, 2020, <doi:10.1080/1357650X.2020.1769124>).
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
