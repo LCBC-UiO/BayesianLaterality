@@ -1,4 +1,5 @@
-#' Predict hemispheric dominance
+#' Predict hemispheric dominance based on observed laterality measures, using the methods
+#' described in \insertCite{Sorensen2020;textual}{BayesianLaterality}.
 #'
 #' @param data Data frame with the following columns:
 #' \itemize{
@@ -46,8 +47,11 @@
 #' # We compute the predictions as before:
 #' predict_dominance(example_data2)
 #'
+#' @references
+#' \insertAllCited{}
 #'
 #' @importFrom rlang .data
+#' @importFrom Rdpack reprompt
 predict_dominance <- function(data,
                               parameters = dplyr::tibble(
                                 dominance = rep(c("left", "right", "none"), each = 2),

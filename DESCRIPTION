@@ -25,8 +25,10 @@ Imports: ICC (>= 2.3.0),
   purrr (>= 0.3.2),
   rlang (>= 0.3.4),
   tidyr (>= 0.8.3),
-  tmvtnorm (>= 1.4-10)
+  tmvtnorm (>= 1.4-10),
+  Rdpack
 Suggests: 
     ggplot2 (>= 3.1.0),
     roxygen2,
     testthat (>= 2.1.0)
+RdMacros: Rdpack

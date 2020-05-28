@@ -2,7 +2,8 @@
 % Please edit documentation in R/predict_dominance.R
 \name{predict_dominance}
 \alias{predict_dominance}
-\title{Predict hemispheric dominance}
+\title{Predict hemispheric dominance based on observed laterality measures, using the methods
+described in \insertCite{Sorensen2020;textual}{BayesianLaterality}.}
 \usage{
 predict_dominance(
   data,
@@ -48,7 +49,8 @@ The probability of left or right hemispheric dominance in additional
   columns of \code{data}.
 }
 \description{
-Predict hemispheric dominance
+Predict hemispheric dominance based on observed laterality measures, using the methods
+described in \insertCite{Sorensen2020;textual}{BayesianLaterality}.
 }
 \examples{
 # The package comes with two example datasets.
@@ -66,5 +68,7 @@ example_data2
 # We compute the predictions as before:
 predict_dominance(example_data2)
 
-
+}
+\references{
+\insertAllCited{}
 }
