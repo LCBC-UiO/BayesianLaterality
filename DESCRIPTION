@@ -1,6 +1,6 @@
 Package: BayesianLaterality
 Type: Package
-Title: Predict brain asymmetry based on handedness and dichotic listening
+Title: Predict Brain Asymmetry Based on Handedness and Dichotic Listening
 Version: 0.1.0
 Author: Oystein Sorensen
 Maintainer: Oystein Sorensen <oystein.sorensen.1985@gmail.com>
