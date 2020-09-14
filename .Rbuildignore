@@ -6,4 +6,4 @@
 ^test_data\.R$
 ^\.travis\.yml$
 ^cran-comments\.md
-^news\.md
+^NEWS\.md
