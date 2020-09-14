@@ -2,8 +2,7 @@
 % Please edit documentation in R/predict_dominance.R
 \name{predict_dominance}
 \alias{predict_dominance}
-\title{Predict hemispheric dominance based on observed laterality measures, using the methods
-described in \insertCite{Sorensen2020;textual}{BayesianLaterality}.}
+\title{Predict hemispheric dominance}
 \usage{
 predict_dominance(
   data,
@@ -21,7 +20,7 @@ predict_dominance(
 \item \code{handedness}: \code{"left"} for adextral (non-right-handed) and
       \code{"right"} for dextral (right-handed)
       }
- In addition, an optional column name \code{ID}
+ In addition, an optional column named \code{ID}
   can be provided, giving the subject ID. If a subject has multiple
   measurements, the posterior based on all measurements is provided. If the
   \code{ID} column is missing, each row is assumed to be measured on a

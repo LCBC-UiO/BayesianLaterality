@@ -2,5 +2,6 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^README\.Rmd$
+^README\.md$
 ^test_data\.R$
 ^\.travis\.yml$
