@@ -5,3 +5,4 @@
 ^README\.md$
 ^test_data\.R$
 ^\.travis\.yml$
+^cran-comments\.md
