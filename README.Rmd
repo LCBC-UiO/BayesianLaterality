@@ -16,6 +16,7 @@ knitr::opts_chunk$set(
 # BayesianLaterality
 
 <!-- badges: start -->
+[![CRAN_Status_Badge](https://www.r-pkg.org/badges/version/BayesianLaterality)](https://cran.r-project.org/package=BayesianLaterality)
 [![Travis build status](https://travis-ci.org/LCBC-UiO/BayesianLaterality.svg?branch=master)](https://travis-ci.org/LCBC-UiO/BayesianLaterality)
 <!-- badges: end -->
 
@@ -24,7 +25,13 @@ BayesianLaterality contains a function for predicting latent hemispheric dominan
 ## Installation
 
 
-You can install BayesianLaterality from [GitHub](https://github.com/) with:
+You can install BayesianLaterality from [CRAN](https://cran.r-project.org/web/packages/BayesianLaterality/) with:
+
+```{r, eval=FALSE}
+install.packages("BayesianLaterality")
+```
+
+Install the latest development version from [GitHub](https://github.com/LCBC-UiO/BayesianLaterality) with:
 
 ``` r
 # install.packages("remotes")

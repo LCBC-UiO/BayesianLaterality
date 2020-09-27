@@ -5,6 +5,7 @@
 
 <!-- badges: start -->
 
+[![CRAN\_Status\_Badge](https://www.r-pkg.org/badges/version/BayesianLaterality)](https://cran.r-project.org/package=BayesianLaterality)
 [![Travis build
 status](https://travis-ci.org/LCBC-UiO/BayesianLaterality.svg?branch=master)](https://travis-ci.org/LCBC-UiO/BayesianLaterality)
 <!-- badges: end -->
@@ -18,8 +19,16 @@ app](https://osorensen.shinyapps.io/BayesianLateralityApp/).
 
 ## Installation
 
-You can install BayesianLaterality from [GitHub](https://github.com/)
+You can install BayesianLaterality from
+[CRAN](https://cran.r-project.org/web/packages/BayesianLaterality/)
 with:
+
+``` r
+install.packages("BayesianLaterality")
+```
+
+Install the latest development version from
+[GitHub](https://github.com/LCBC-UiO/BayesianLaterality) with:
 
 ``` r
 # install.packages("remotes")
