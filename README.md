@@ -6,8 +6,6 @@
 <!-- badges: start -->
 
 [![CRAN\_Status\_Badge](https://www.r-pkg.org/badges/version/BayesianLaterality)](https://cran.r-project.org/package=BayesianLaterality)
-[![Travis build
-status](https://travis-ci.org/LCBC-UiO/BayesianLaterality.svg?branch=master)](https://travis-ci.org/LCBC-UiO/BayesianLaterality)
 <!-- badges: end -->
 
 BayesianLaterality contains a function for predicting latent hemispheric
