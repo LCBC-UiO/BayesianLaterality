@@ -3,7 +3,7 @@ Type: Package
 Title: Predict Brain Asymmetry Based on Handedness and Dichotic Listening
 Version: 0.1.1
 Authors@R: c(person("Oystein", "Sorensen", 
-                    email = "oystein.sorensen@psykologi.uio.no", 
+                    email = "oystein.sorensen.1985@gmail.com", 
                     role = c("aut", "cre"),
                     comment = c(ORCID = "0000-0003-0724-3542")))
 Maintainer: Oystein Sorensen <oystein.sorensen.1985@gmail.com>
