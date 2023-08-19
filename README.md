@@ -5,8 +5,8 @@
 
 <!-- badges: start -->
 
-[![CRAN\_Status\_Badge](https://www.r-pkg.org/badges/version/BayesianLaterality)](https://cran.r-project.org/package=BayesianLaterality)
-[![R-CMD-check](https://github.com/LCBC-UiO/BayesianLaterality/workflows/R-CMD-check/badge.svg)](https://github.com/LCBC-UiO/BayesianLaterality/actions)
+[![CRAN_Status_Badge](https://www.r-pkg.org/badges/version/BayesianLaterality)](https://cran.r-project.org/package=BayesianLaterality)
+[![R-CMD-check](https://github.com/LCBC-UiO/BayesianLaterality/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/LCBC-UiO/BayesianLaterality/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 BayesianLaterality contains a function for predicting latent hemispheric
@@ -60,7 +60,7 @@ reflects the row in the original dataset.
 ``` r
 predict_dominance(example_data1)
 #> No ID column in data, assuming one subject per row.
-#> # A tibble: 9 x 4
+#> # A tibble: 9 × 4
 #>   ID    handedness dominance probability
 #>   <chr> <chr>      <chr>           <dbl>
 #> 1 1     right      left          0.994  
