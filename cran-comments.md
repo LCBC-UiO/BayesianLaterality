@@ -5,6 +5,7 @@ requested per email from the CRAN team.
 
 ## Test environments
 * local OS X install, R 4.3.1
+* Ubuntu, OS X, and Windows via GitHub Actions.
 
 ## R CMD check results
 There were no ERRORs or WARNINGs or NOTEs.
