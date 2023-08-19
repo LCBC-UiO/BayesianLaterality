@@ -1,11 +1,10 @@
 ## Comment
 
-This is a package update. It adds information to the DESCRIPTION file.
+This is a package update. It adds the new special sentinel "_PACKAGE" as 
+requested per email from the CRAN team.
 
 ## Test environments
-* local OS X install, R 4.1.0
-* ubuntu 16.04 (on travis-ci), R 4.0.2
-* win-builder (devel and release)
+* local OS X install, R 4.3.1
 
 ## R CMD check results
 There were no ERRORs or WARNINGs or NOTEs.
